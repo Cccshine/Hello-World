@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>360度全景图片</title>
+	<style type="text/css">
+		img{
+			width: 640px;
+			display: block;
+			margin: 30px auto;
+		}
+		.hide{
+			display: none;
+		}
+		.show{
+			display: block;
+		}
+	</style>
+</head>
+<body>
+	<img id="img" src="img/360 (0).jpg">
+</body>
+<script type="text/javascript">
+	var oImg = document.getElementById('img');
+	var oImgs = document.getElementsByTagName('img');
+	var x = 0;
+	var len = 77;
+	var oLastImg = oImg;
+	var lastX = 0;
+	var nSpeed = 0;
+	var timer = null;
+	
+	//采用图片预加载提高性能
+	for(var i=1;i<len;i++){
+		var oNewImg = document.createElement('img');
+		preLoad(i,function(){
+			oNewImg.src = this.src;
+		})
+		oNewImg.className = 'hide';
+		document.body.appendChild(oNewImg);
+	}
+
+	
+
+	document.onmousedown = function(ev){
+		var oEvent = ev || event;
+		var disX = oEvent.clientX - x;//disX表示鼠标按下时，鼠标的位置与x的差值
+		clearInterval(timer);
+
+		document.onmousemove = function(ev){
+			var oEvent = ev || event;
+			x = oEvent.clientX - disX;
+			
+			rotateTab();
+
+			nSpeed = x - lastX;
+			lastX = x;
+			
+			return false;
+
+		}
+
+		document.onmouseup = function(){
+			document.onmousemove = document.onmouseup = null;
+			timer = setInterval(function(){
+				x += nSpeed;
+				nSpeed = nSpeed > 0 ? nSpeed-1 : nSpeed+1;	
+				document.title = nSpeed;
+				if(nSpeed == 0){
+					clearInterval(timer);
+				}
+				rotateTab();	
+			},100);
+			
+		}
+
+		//图片切换函数
+		function rotateTab(){
+			var nTemp = parseInt(-x/10);
+			nTemp = nTemp > 0 ? nTemp%len : nTemp + (-Math.floor(nTemp/len)*len);
+			if(oLastImg != oImgs[nTemp]){
+				oLastImg.className = 'hide';
+				oImgs[nTemp].className = 'show';
+				oLastImg = oImgs[nTemp];
+			}
+		}
+
+		return false;
+	}
+
+	//图片预加载
+	function preLoad(i,callback){
+		var oImgPre = new Image();
+		oImgPre.src ='img/360 ('+ i +').jpg';
+
+		if(oImgPre.complete){
+			callback.call(oImgPre);
+			return;
+		}
+
+		oImgPre.onload = function(){
+			callback.call(oImgPre);
+		}
+
+	}
+</script>
+</html>
