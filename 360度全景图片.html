@@ -18,41 +18,53 @@
 	</style>
 </head>
 <body>
-	<img id="img" src="img/360 (0).jpg">
+	<img id="img" src="img/360(0).jpg">
 </body>
 <script type="text/javascript">
 	var oImg = document.getElementById('img');
 	var oImgs = document.getElementsByTagName('img');
-	var x = 0;
-	var len = 77;
+	var x = 0; 
+	var len = 77;//图片数量
 	var oLastImg = oImg;
 	var lastX = 0;
 	var nSpeed = 0;
 	var timer = null;
-	
-	//采用图片预加载提高性能
+
+
+	// 采用图片预加载提高性能
 	for(var i=1;i<len;i++){
 		var oNewImg = document.createElement('img');
-		preLoad(i,function(){
-			oNewImg.src = this.src;
-		})
-		oNewImg.className = 'hide';
-		document.body.appendChild(oNewImg);
-	}
 
+		(function(oNewImg){
+			var oImg = new Image();
+
+			oImg.onload = function(){
+				oNewImg.src = this.src;
+			}
+
+			oImg.src = 'img/360('+i+').jpg';
+			oNewImg.className = 'hide';
+			document.body.appendChild(oNewImg);
+
+		})(oNewImg);
+	}
 	
 
 	document.onmousedown = function(ev){
 		var oEvent = ev || event;
-		var disX = oEvent.clientX - x;//disX表示鼠标按下时，鼠标的位置与x的差值
+		var disX = oEvent.clientX - x;//disX表示鼠标按下时，鼠标的位置与当前x的差值
+
 		clearInterval(timer);
 
 		document.onmousemove = function(ev){
 			var oEvent = ev || event;
-			x = oEvent.clientX - disX;
+
+			x = oEvent.clientX - disX;//鼠标move过程中鼠标移动像素值的实时值
 			
+			//图片切换
 			rotateTab();
 
+			//根据移动的像素值来决定鼠标抬起后的初始速度
 			nSpeed = x - lastX;
 			lastX = x;
 			
@@ -62,6 +74,8 @@
 
 		document.onmouseup = function(){
 			document.onmousemove = document.onmouseup = null;
+
+			// 通过定时器不断减小速度，以实现缓慢停止旋转
 			timer = setInterval(function(){
 				x += nSpeed;
 				nSpeed = nSpeed > 0 ? nSpeed-1 : nSpeed+1;	
@@ -76,8 +90,14 @@
 
 		//图片切换函数
 		function rotateTab(){
-			var nTemp = parseInt(-x/10);
+			//设置每移动10px切换一张图片
+			var nTemp = parseInt(x/10);
+			//通过计算得出相应的要显示的图片的下标：
+			//往右移动时通过取模获得，往左移动时通过公式 nTemp + (-Math.floor(nTemp/len)*len)获得
+			//即加上一个能使nTemp为正数的值，该值应是可能取值中最小的
 			nTemp = nTemp > 0 ? nTemp%len : nTemp + (-Math.floor(nTemp/len)*len);
+			
+			//由于10px才换一次图片，所以当符合条件时进行转换
 			if(oLastImg != oImgs[nTemp]){
 				oLastImg.className = 'hide';
 				oImgs[nTemp].className = 'show';
@@ -86,22 +106,6 @@
 		}
 
 		return false;
-	}
-
-	//图片预加载
-	function preLoad(i,callback){
-		var oImgPre = new Image();
-		oImgPre.src ='img/360 ('+ i +').jpg';
-
-		if(oImgPre.complete){
-			callback.call(oImgPre);
-			return;
-		}
-
-		oImgPre.onload = function(){
-			callback.call(oImgPre);
-		}
-
-	}
+	}		
 </script>
 </html>
